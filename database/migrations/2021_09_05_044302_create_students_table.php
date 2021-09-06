@@ -23,6 +23,7 @@ class CreateStudentsTable extends Migration
             $table->unsignedBigInteger('state_id');
             $table->foreign('state_id')->references('id')->on('states');
             $table->string('profile_photo_path')->nullable();
+            $table->boolean('term_condition');
             $table->timestamps();
         });
     }

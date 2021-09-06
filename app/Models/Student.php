@@ -16,17 +16,9 @@ class Student extends Model
         'country_id',
         'state_id',
         'profile_photo_path',
+        'term_condition'
     ];
-    // protected $visible = [
-    //     'name',
-    //     'phone',
-    //     'email',
-    //     'gender',
-    //     'state_id',
-    //     'profile_photo_path',
-    // ];
-
-    // protected $with = ['State'];
+    
     public function State() 
     {
         return $this->belongsTo(State::class);

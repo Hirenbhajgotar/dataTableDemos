@@ -1,5 +1,6 @@
 <?php
 
+use App\Http\Controllers\CountryController;
 use App\Http\Controllers\EmployeeController;
 use App\Http\Controllers\HomeController;
 use App\Http\Controllers\StateController;
@@ -46,3 +47,6 @@ Route::get('/student', [StudentController::class, 'index'])->name('student');
 Route::get('/students', [StudentController::class, 'show'])->name('student.list');
 Route::post('/student', [StudentController::class, 'store'])->name('student.add');
 Route::post('/country/{id}', [StateController::class, 'getCountry'])->name('country.get');
+Route::get('/state/{state}', [StateController::class, 'getState'])->name('state.get');
+Route::get('/country/{country}', [CountryController::class, 'get'])->name('country.get.first');
+Route::get('/student/{id}', [StudentController::class, 'destroy'])->name('student.delete');

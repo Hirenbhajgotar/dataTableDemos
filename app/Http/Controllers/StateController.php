@@ -7,6 +7,10 @@ use Illuminate\Http\Request;
 
 class StateController extends Controller
 {
+    public function getState(State $state)
+    {
+        return response()->json($state, 200);
+    }
     // get country
     public function getCountry($id)
     {

@@ -10,7 +10,7 @@
     <table id="student_table_id" class="display">
         <div class="my-3">
             <button type="button" id="add-record" class="btn btn-sm mx-1 btn-primary">Add</button>
-            <button type="button" id="delete-records" class="btn btn-sm mx-1 btn-danger">Delete All</button>
+            {{--<button type="button" id="delete-records" class="btn btn-sm mx-1 btn-danger">Delete All</button>--}}
         </div>
         <thead>
             <tr>
@@ -21,6 +21,7 @@
                 <th>Gender</th>
                 <th>State</th>
                 <th>Image</th>
+                <th>Action</th>
             </tr>
         </thead>
 
@@ -31,7 +32,7 @@
     <div class="modal-dialog modal-lg">
         <div class="modal-content">
             <div class="modal-header">
-                <h5 class="modal-title" id="exampleModalLabel">Edit</h5>
+                <h5 class="modal-title" id="exampleModalLabel">Laravel/Datatable</h5>
                 <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
             </div>
             <div class="modal-body">
@@ -94,8 +95,18 @@
                             <br>
                             <span class="text-danger error-text gender_err"></span>
                         </div>
+                        <div class="col">
+                            <div class="form-check">
+                                <input class="form-check-input" type="checkbox" value="1" name="term_condition" id="term_condition">
+                                <label class="form-check-label" for="term_condition">
+                                    Terms & Conditions
+                                </label>
+                            </div>
+                            <span class="text-danger error-text term_condition_err"></span>
+
+                        </div>
                     </div>
-                    <input type="hidden" id="edit-form-id">
+                    <input type="hidden" name="editForm" id="edit-form-id">
                     <button type="submit" class="btn btn-secondary">Submit</button>
                 </form>
             </div>
@@ -153,6 +164,11 @@
                     data: 'profile_photo_path',
                     name: 'image',
                     render: getImg
+                },
+                {
+                    "orderable": false,
+                    "data": null,
+                    "defaultContent": `<button type="button" id="edit-row" class="btn btn-warning btn-sm" >Edit</button><button type="button" id="delete-row" class="btn btn-danger btn-sm ms-1">Delete</button>`
                 }
             ],
             "columnDefs": [{
@@ -175,7 +191,7 @@
                 cell.innerHTML = i + 1;
             });
         }).draw();
-        //* Add record
+        // Add record
         $('#add-record').on('click', function(e) {
             myModal.toggle();
         });
@@ -216,13 +232,16 @@
         // Dependent country/state dropdown
         $('#country_id').on('change', function(e) {
             let countryId = $(this).val();
+            dd(countryId);
+        });
+
+        function dd(countryId) {
             let url = "{{route('country.get', ['id' => ':queryId'])}}";
             url = url.replace(':queryId', countryId);
             $.ajax({
                 url: url,
                 method: 'POST',
                 success: function(res) {
-                    console.log(res.data);
                     $('#state_id').empty();
                     $('#state_id').append('<option>Select State</option>');
                     $.each(res.data, function(key, val) {
@@ -233,7 +252,90 @@
                     console.log(err);
                 }
             })
+        }
+        // Edit record
+        $('#student_table_id').on('click', '#edit-row', function(e) {
+            myModal.toggle();
+            let rowData = student_table.row($(this).parent().parent()).data();
+            populateFormData(rowData);
         });
+
+        // populate form data
+        function populateFormData(formData) {
+            // country ajax
+            let getCountryUrl = "{{route('country.get.first', ['country' => ':countryObj'])}}";
+            getCountryUrl = getCountryUrl.replace(':countryObj', formData.country_id);
+            $.ajax({
+                url: getCountryUrl,
+                method: 'GET',
+                success: function(countryResult) {
+                    $('#country_id').val(countryResult.id);
+                    // $('#country_id').trigger('change');
+                    dd(countryResult.id);
+                },
+                error: function(err) {
+                    console.log(err);
+                }
+            });
+            // state ajax
+            let getStateUrl = "{{route('state.get', ['state' => ':stateObj'])}}";
+            getStateUrl = getStateUrl.replace(':stateObj', formData.state_id);
+            $.ajax({
+                url: getStateUrl,
+                method: 'GET',
+                success: function(stateResult) {
+                    setTimeout(function() {
+                        $('#state_id').val(stateResult.id).attr("selected", "selected");
+                    }, 1000);
+                },
+                error: function(err) {
+                    console.log(err);
+                }
+            });
+            $('#edit-form-id').val(formData.id);
+            $('#name').val(formData.name);
+            $('#phone').val(formData.phone);
+            $('#email').val(formData.email);
+            if (formData.term_condition) {
+                $('#term_condition').prop('checked', true);
+            } else {
+                $('#term_condition').prop('checked', false);
+            }
+            if (formData.gender === 'male') {
+                $("#male").prop("checked", true);
+            } else {
+                $("#female").prop("checked", true);
+            }
+        }
+
+        //* Delete single record
+        $('#student_table_id').on('click', '#delete-row', function(e) {
+            let rowData = student_table.row($(this).parent().parent()).data();
+            if (confirm('Are you sure to Delete this Record'))
+                deleteRow(e, rowData.id);
+        });
+
+        function deleteRow(e, id) {
+            e.preventDefault();
+            let url = "{{route('student.delete', ['id' => ':queryId'])}}";
+            url = url.replace(':queryId', id);
+            $.ajax({
+                url: url,
+                method: 'GET',
+                success: function(response) {
+                    if (response.success) {
+                        student_table.ajax.reload();
+                        alert(response.message) //Message come from controller
+                    } else {
+                        alert("Error")
+                    }
+                },
+                error: function(error) {
+                    console.log(error)
+                }
+            });
+        }
+
     })
 </script>
 @endsection
